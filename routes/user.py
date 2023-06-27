@@ -1,10 +1,12 @@
-from fastapi import APIRouter,Depends
+from fastapi import APIRouter,Depends, HTTPException
 from config.db import conn,SessionLocal
 from models.user import users
 from sqlalchemy.orm import Session
-from schemas.user import User
+from schemas.user import User,UserUpdate
+from sqlalchemy import exc
+from typing import List
 from cryptography.fernet import Fernet
-from models.crud import create_user as create
+from models import crud
 user = APIRouter()
 def get_db():
     db = SessionLocal()
@@ -18,22 +20,77 @@ def get_users():
 Key= Fernet.generate_key()
 f = Fernet(Key)
 
-@user.post("/users")
+@user.post("/usersbytable")
 def create_user(user: User):
     print(user)
-    new_user = {"id":user.id,"username":user.username,"phone":user.phone,"isactive":user.isactivate}
-    new_user["password"] = f.encrypt(user.password.encode("utf-8"))
-    result = conn.execute(users.insert().values(new_user))
+    new_user = {"id":user.id,"username":user.username,"password":user.password,"phone":user.phone,"isactive":user.isactivate}
+   # new_user["password"] = f.encrypt(user.password.encode("utf-8"))
+    db:Session=Depends(get_db)
+
+    try:
+        result = conn.execute(users.insert().values(new_user))
+    except exc.SQLAlchemyError as e:
+        print(e)    
+
     print(result)
+
     return "user created"
 
+@user.get("/staticinserttable/")
+def hi():
+    new_user=new_user = {"id":912454,"username":"JOHEDN","password":"JFEFJEJFN5458","phone":888888,"isactive":False}
+    result = conn.execute(users.insert().values(new_user))
+    print(result)
+   
 @user.post("/users1/", response_model=User)
 def create_user1(user: User, db: Session = Depends(get_db)):
-   
-    return create(db=db, user=user)
-    'users',meta,
-    Column('id',Integer,primary_key=True),
-    Column('username',String(255)),
-    Column('password',String(255)),
-    Column('phone',Integer),
-    Column('isactive',Boolean),
+       
+    return crud.create_user(db=db, user=user)
+
+
+@user.get("/getallusers/",  response_model=List[User])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+        users = crud.get_users(db, skip=skip, limit=limit)
+
+        return users
+
+@user.get("/specificusers1/{user_id}", response_model=User)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+            db_user = crud.get_user(db, user_id=user_id)
+
+            if db_user is None:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            return db_user
+
+@user.get("/specificusers1/{user_id}", response_model=User)
+def read_user(user_id: int, db: Session = Depends(get_db)):
+            db_user = crud.get_user(db, user_id=user_id)
+
+            if db_user is None:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            return db_user
+
+@user.put("/updateuser/{user_id}", response_model=User)
+def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    db_user = crud.get_user(db, user_id=user_id)
+
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    result = crud.update_user(db,db_user=db_user,updateuser=user)
+    return result  
+      
+@user.delete("/deleting/{user_id}",response_model=User)
+def delete_user(user_id:int,db:Session = Depends(get_db)):
+     db_user=crud.get_user(db,user_id=user_id)
+     result = crud.delete_user(db,db_user)
+     return result
+
+#    'users',meta,
+#    Column('id',Integer,primary_key=True),
+#    Column('username',String(255)),
+#    Column('password',String(255)),
+#    Column('phone',Integer),
+#    Column('isactive',Boolean),

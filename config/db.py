@@ -1,4 +1,5 @@
 from sqlalchemy import create_engine,MetaData
+from sqlalchemy.exc import SQLAlchemyError
 engine = create_engine("mysql+mysqlconnector://root:12345!6mJb@localhost:3306/HELLO")
 meta = MetaData()
 from sqlalchemy.orm import sessionmaker
