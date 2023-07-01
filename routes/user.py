@@ -1,4 +1,4 @@
-from fastapi import APIRouter,Depends, HTTPException
+from fastapi import APIRouter,Depends, HTTPException,Path
 from config.db import conn,SessionLocal
 from models.user import users
 from sqlalchemy.orm import Session
@@ -14,9 +14,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
 @user.get("/users")
 def get_users():
     return conn.execute(users.select()).fetchall()
+
+
 Key= Fernet.generate_key()
 f = Fernet(Key)
 
@@ -35,6 +38,8 @@ def create_user(user: User):
     print(result)
 
     return "user created"
+
+
 
 @user.get("/staticinserttable/")
 def hi():
@@ -63,15 +68,6 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
             
             return db_user
 
-@user.get("/specificusers1/{user_id}", response_model=User)
-def read_user(user_id: int, db: Session = Depends(get_db)):
-            db_user = crud.get_user(db, user_id=user_id)
-
-            if db_user is None:
-                raise HTTPException(status_code=404, detail="User not found")
-            
-            return db_user
-
 @user.put("/updateuser/{user_id}", response_model=User)
 def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     db_user = crud.get_user(db, user_id=user_id)
@@ -88,9 +84,3 @@ def delete_user(user_id:int,db:Session = Depends(get_db)):
      result = crud.delete_user(db,db_user)
      return result
 
-#    'users',meta,
-#    Column('id',Integer,primary_key=True),
-#    Column('username',String(255)),
-#    Column('password',String(255)),
-#    Column('phone',Integer),
-#    Column('isactive',Boolean),

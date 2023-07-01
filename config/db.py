@@ -1,8 +1,10 @@
 from sqlalchemy import create_engine,MetaData
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
+
+
 engine = create_engine("mysql+mysqlconnector://root:12345!6mJb@localhost:3306/HELLO")
 meta = MetaData()
-from sqlalchemy.orm import sessionmaker
 SessionLocal = sessionmaker(bind=engine)
-
 conn = engine.connect()

@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
-
 from . import user as ormmodels
 from schemas import user as User
+
+
 def create_user(db: Session, user: User.User):
     db_user = ormmodels.User(id=user.id,username = user.username,password=user.password,phone = user.phone,isactive = user.isactivate)
     db.add(db_user)
@@ -23,6 +24,7 @@ def update_user(db: Session,db_user:User.User,updateuser:User.UserUpdate):
     db.commit()
     db.refresh(db_user)
     return db_user
+    
 def delete_user(db:Session,db_user:User):
     db.delete(db_user)
     db.commit()
