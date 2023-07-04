@@ -1,0 +1,26 @@
+version: '3.1'
+
+
+services:
+  
+  databasemysql:
+    image: mysql:latest
+    restart: always 
+    environment:
+      - MYSQL_DATABASE=HELLOMY
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=12345789!6mJb
+      - MYSQL_ROOT_PASSWORD=123457891012!6mJb
+    ports:
+        - "3306:3306"
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+
+    environment:
+      - DATABASE_URL=mysql+pymysql://user:12345789!6mJb@db:3306/HELLOMY
+    #command: "uvicorn app:app --host 0.0.0.0 --port 6060 --reload"
+    depends_on:
+      - databasemysql
+      

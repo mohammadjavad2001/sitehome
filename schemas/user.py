@@ -1,16 +1,15 @@
 from pydantic import BaseModel,Field
 from typing import Optional
 from datetime import date
-
 class User(BaseModel):
-    id: Optional[int]
+    id: int
     username: str 
     password: str
-    phone: int
+    phone: str
+    isstaff: bool = False
     isactivate: bool = True
     class Config:
         orm_mode = True
-
 class UserUpdate(BaseModel):
     username: str
     password:str
@@ -23,11 +22,14 @@ class UserUpdate(BaseModel):
 
 class AdvertisingBase(BaseModel):
     id: int
-    user_id : int = Field(foreign_key="user.id")
+    user : int
     address: str
+    city:str
+    subject:str
+    description: str
     price:int
     phone: str
     date:date
-    is_active: bool     
+    is_active: bool = True    
     class Config:
         orm_mode = True    
