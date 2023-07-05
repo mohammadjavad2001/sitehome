@@ -49,4 +49,5 @@ class Advers(Base):
     date = Column(Date)
     isactive = Column(Boolean,default=True)
 
+
 Base.metadata.create_all(engine)
