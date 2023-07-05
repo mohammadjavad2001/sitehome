@@ -8,6 +8,7 @@ class User(BaseModel):
     phone: str
     isstaff: bool = False
     isactivate: bool = True
+    profile_picture:Optional[str]=None     
     class Config:
         orm_mode = True
 class UserUpdate(BaseModel):
