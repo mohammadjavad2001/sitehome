@@ -1,4 +1,4 @@
-from sqlalchemy import Table,Date, Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import URL, Table,Date, Boolean, Column, ForeignKey, Integer, String,LargeBinary
 from config.db import meta,engine
 from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
@@ -33,8 +33,7 @@ class User(Base):
     password = Column(String(255))
     phone = Column(String(255), index=True)
     isactive = Column(Boolean, default=True)
-
-
+    profile_picture = Column(String(512), nullable=True)
 class Advers(Base):
     __tablename__ = "adversting"
 
@@ -48,5 +47,6 @@ class Advers(Base):
     price = Column(Integer)
     date = Column(Date)
     isactive = Column(Boolean,default=True)
+    
 
 Base.metadata.create_all(engine)

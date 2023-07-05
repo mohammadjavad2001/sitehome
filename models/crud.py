@@ -1,5 +1,7 @@
 import hashlib
+from fastapi import File, UploadFile
 from sqlalchemy.orm import Session
+from sqlalchemy import LargeBinary
 from . import user as ormmodels
 from schemas import user as pydantic_models
 
@@ -11,6 +13,7 @@ def create_user(db: Session, user: pydantic_models.User):
     db.commit()
     db.refresh(db_user)
     return db_user
+
 def create_advers(db: Session, advers: pydantic_models.AdvertisingBase):
     db_advers = ormmodels.Advers(id=advers.id,user = advers.user,address=advers.address,city = advers.city,
                                subject = advers.subject,description=advers.description,price=advers.price,
@@ -41,7 +44,14 @@ def update_user(db: Session,db_user:pydantic_models.User,updateuser:pydantic_mod
     db.commit()
     db.refresh(db_user)
     return db_user
-    
+
+def upload_image(db:Session,db_user:pydantic_models.User,image:str):
+    db_user.profile_picture=image
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 def delete_user(db:Session,db_user:pydantic_models):
     db.delete(db_user)
     db.commit()
