@@ -16,8 +16,8 @@ def create_user(db: Session, user: pydantic_models.User):
 
 def create_advers(db: Session, advers: pydantic_models.AdvertisingBase):
     db_advers = ormmodels.Advers(id=advers.id,user = advers.user,address=advers.address,city = advers.city,
-                               subject = advers.subject,description=advers.description,price=advers.price,
-                               phone=advers.phone,date=advers.date,isactive=advers.is_active)
+                                 subject = advers.subject,description=advers.description,price=advers.price,
+                                 phone=advers.phone,date=advers.date,isactive=advers.is_active)
     db.add(db_advers)
     db.commit()
     db.refresh(db_advers)
