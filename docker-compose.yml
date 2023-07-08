@@ -1,6 +1,4 @@
-version: '3.1'
-
-
+version: '2.1'
 services:
   
   databasemysql:
@@ -13,14 +11,28 @@ services:
       - MYSQL_ROOT_PASSWORD=123457891012!6mJb
     ports:
         - "3306:3306"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3306"]
+        interval: 30s
+        timeout: 10s
+        retries: 5       
   app:
     build: .
     ports:
       - "8080:8080"
+    volumes:
+      - ./sitehome:/app
 
-    environment:
-      - DATABASE_URL=mysql+pymysql://user:12345789!6mJb@db:3306/HELLOMY
-    #command: "uvicorn app:app --host 0.0.0.0 --port 6060 --reload"
+    #environment:
+    #  - DATABASE_URL=mysql+pymysql://user:12345789!6mJb@databasemysql:3306/HELLOMY
     depends_on:
-      - databasemysql
-      
+      databasemysql:
+        condition: service_healthy
+    #command: sh -c "/wait && uvicorn app:app --host 0.0.0.0 --port 8080 --reload "
+    #  #
+    #environment:
+    # - WAIT_HOSTS=databasemysql:3306
+    # - WAIT_HOSTS_TIMEOUT=300
+    # - WAIT_SLEEP_INTERVAL=30
+    # 
+    #  - WAIT_HOST_CONNECT_TIMEOUT=30
