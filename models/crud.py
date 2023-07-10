@@ -8,7 +8,7 @@ from schemas import user as pydantic_models
 
 def create_user(db: Session, user: pydantic_models.User):
     hash_pass=hashlib.md5(user.password.encode('utf-8')).hexdigest()
-    db_user = ormmodels.User(id=user.id,username = user.username,password=hash_pass,phone = user.phone,isactive = user.isactivate)
+    db_user = ormmodels.User(id=user.id,username = user.username,password=hash_pass,phone = user.phone,isactive = user.isactivate,email=user.email)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -44,7 +44,14 @@ def update_user(db: Session,db_user:pydantic_models.User,updateuser:pydantic_mod
     db.commit()
     db.refresh(db_user)
     return db_user
+def seller_True(db: Session,db_user:pydantic_models.User):
+    db_user.is_seller=True
 
+      
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 def upload_image(db:Session,db_user:pydantic_models.User,image:str):
     db_user.profile_picture=image
     db.add(db_user)
@@ -55,4 +62,12 @@ def upload_image(db:Session,db_user:pydantic_models.User,image:str):
 def delete_user(db:Session,db_user:pydantic_models):
     db.delete(db_user)
     db.commit()
+    return db_user
+
+def update_isactive(db: Session,user_id:int):
+    db_user=get_user(db=db,user_id=user_id)
+    db_user.isactive=True
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
     return db_user

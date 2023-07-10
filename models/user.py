@@ -14,8 +14,10 @@ class User(Base):
     username = Column(String(255), index=True)
     password = Column(String(255))
     phone = Column(String(255), index=True)
-    isactive = Column(Boolean, default=True)
+    isactive = Column(Boolean, default=False)
+    email =Column(String(255), index=True)
     profile_picture = Column(String(512), nullable=True)
+    is_seller = Column(Boolean,default=False)
 class Advers(Base):
     __tablename__ = "adversting"
 

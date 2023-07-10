@@ -17,9 +17,9 @@ depends_on = None
 
 
 def upgrade() -> None:
-            op.add_column('users', sa.Column('profile_picture', sa.String(512)))
+            op.add_column('users', sa.Column('is_seller', sa.Boolean))
 
-
+        
 
 def downgrade() -> None:
     pass
