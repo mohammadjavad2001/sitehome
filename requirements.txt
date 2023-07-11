@@ -9,4 +9,7 @@ PyMySQL==1.1.0
 cryptography==2.8
 email-validator
 fastapi-mail
-cachetools
+#cachetools
+#fastapi-cache2
+redis
+python-multipart

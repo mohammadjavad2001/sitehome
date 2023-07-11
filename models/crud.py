@@ -35,7 +35,8 @@ def get_users(db: Session, skip: int = 0, limit: int = 100):
 
 def get_user(db: Session, user_id: int):
     return db.query(ormmodels.User).filter(ormmodels.User.id == user_id).first()
-
+def get_userbyusername(db: Session, username: str):
+    return db.query(ormmodels.User).filter(ormmodels.User.username == username).first()
 def update_user(db: Session,db_user:pydantic_models.User,updateuser:pydantic_models.UserUpdate):
     update_data = updateuser.dict(exclude_unset=True)
     for key, value in update_data.items():

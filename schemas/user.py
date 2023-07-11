@@ -11,7 +11,6 @@ class User(BaseModel):
     isstaff: bool = False
     isactivate: bool = False
     is_seller:bool=False
-    
     profile_picture:Optional[str]=None     
    
     class Config:
@@ -54,3 +53,12 @@ conf = ConnectionConfig(
     MAIL_STARTTLS = False,
     MAIL_SSL_TLS = True
 )   
+
+
+
+class LoginUser(BaseModel):
+    username:str
+    password:str
+    
+    #scope:str
+    
