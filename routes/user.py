@@ -255,15 +255,18 @@ def create_access_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt    
 
-@router.post("/checktokenOK?/")
-async def get_current_user(token: Annotated[Token,Depends(oauth2_scheme)],db:Session = Depends(get_db)):
+#[Token,Depends(oauth2_scheme)]
+@router.post("/checktokenOK/")
+def get_current_user(token: Token,db:Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print("sdvfsdv")
         payload = jwt.decode(token.access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        print("DSV")
         token_username: str = payload.get("sub")
         if token_username is None:
             raise credentials_exception
