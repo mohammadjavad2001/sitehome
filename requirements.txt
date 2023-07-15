@@ -1,0 +1,17 @@
+fastapi==0.98.0
+uvicorn==0.22.0
+typing-extensions==4.6.3
+sqlalchemy
+python-multipart
+mysql-connector-python==8.0.33
+mysql-connector==2.2.9
+alembic==1.11.1
+PyMySQL==1.1.0
+cryptography==2.8
+email-validator
+fastapi-mail
+#cachetools
+#fastapi-cache2
+redis
+python-multipart
+python-jose

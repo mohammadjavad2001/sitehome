@@ -1,0 +1,89 @@
+version: '2.1'
+services:
+  
+  databasemysql:
+    image: mysql:latest
+    restart: always 
+    environment:
+      - MYSQL_DATABASE=HELLOMY
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=12345789!6mJb
+      - MYSQL_ROOT_PASSWORD=123457891012!6mJb
+    ports:
+        - "3306:3306"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3306"]
+        interval: 30s
+        timeout: 10s
+        retries: 5 
+
+
+  rediscache:
+  
+    image: redis:latest
+    ports:
+      - 6379:6379
+
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5      
+
+          
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+      
+
+    volumes:
+
+      - /home/uswr/Desktop/site2/:/project
+      #- sitehome:/home/Desktop/site2
+    #environment:
+    #  - DATABASE_URL=mysql+pymysql://user:12345789!6mJb@databasemysql:3306/HELLOMY
+    depends_on:
+     rediscache:
+        condition: service_healthy
+     databasemysql:
+        condition: service_healthy
+      
+        #condition: service_healthy  
+    #command: sh -c "/wait && uvicorn app:app --host 0.0.0.0 --port 8080 --reload "
+    #  #
+    #environment:
+    # - WAIT_HOSTS=databasemysql:3306
+    # - WAIT_HOSTS_TIMEOUT=300
+    # - WAIT_SLEEP_INTERVAL=30
+    # 
+    #  - WAIT_HOST_CONNECT_TIMEOUT=30
+
+  wso2:
+    image: wso2/wso2am:latest
+    container_name: wso2
+    restart: always
+    ports:
+      - "9443:9443"
+      - "8243:8243"
+      - "8280:8280"
+    links:
+      - app      
+    environment:
+      - HOST_NAME=testwso2
+      - WSO2_ANALYTICS_ENABLED=false
+      - WSO2_IS_ANALYTICS_ENABLED=false
+      - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
+      - WSO2_CARBON_DB_USERNAME=user
+      - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
+      - WSO2_USER=user
+      - WSO2_PASSWORD=myname
+      - WSO2_APIM_GT_WK=true
+      - WSO2_APIM_KEY_MANAGER_GT_WK=true
+    depends_on:
+      databasemysql:
+        condition: service_healthy
+
+networks:
+      mynet:
+        driver: bridge
