@@ -39,6 +39,14 @@ class AdvertisingBase(BaseModel):
     is_active: bool = True    
     class Config:
         orm_mode = True    
+
+class Adversupdate(BaseModel):
+    address: str
+    city:str
+    subject:str
+    description: str    
+    is_active: bool = True  
+            
 class EmailSchema(BaseModel):
    email: List[EmailStr]
 

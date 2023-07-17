@@ -1,7 +1,8 @@
 fastapi==0.98.0
 uvicorn==0.22.0
 typing-extensions==4.6.3
-SQLAlchemy==2.0.17
+sqlalchemy
+python-multipart
 mysql-connector-python==8.0.33
 mysql-connector==2.2.9
 alembic==1.11.1
@@ -13,3 +14,4 @@ fastapi-mail
 #fastapi-cache2
 redis
 python-multipart
+python-jose

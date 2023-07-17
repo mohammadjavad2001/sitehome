@@ -15,7 +15,7 @@ class User(Base):
     password = Column(String(255))
     phone = Column(String(255), index=True)
     isactive = Column(Boolean, default=False)
-    email =Column(String(255), index=True)
+    email =Column(String(255))
     profile_picture = Column(String(512), nullable=True)
     is_seller = Column(Boolean,default=False)
 class Advers(Base):
