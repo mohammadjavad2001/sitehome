@@ -4,6 +4,9 @@ services:
   databasemysql:
     image: mysql:latest
     restart: always 
+    networks:
+     - mynet
+        #ipv4_address: 172.28.5.7    
     environment:
       - MYSQL_DATABASE=HELLOMY
       - MYSQL_USER=user
@@ -19,7 +22,9 @@ services:
 
 
   rediscache:
-  
+    networks:
+     - mynet
+     #   ipv4_address: 172.28.5.8  
     image: redis:latest
     ports:
       - 6379:6379
@@ -35,7 +40,9 @@ services:
     build: .
     ports:
       - "8080:8080"
-      
+    networks:
+     - mynet
+     #   ipv4_address: 172.28.5.9     
 
     volumes:
 
@@ -58,32 +65,91 @@ services:
     # - WAIT_SLEEP_INTERVAL=30
     # 
     #  - WAIT_HOST_CONNECT_TIMEOUT=30
+  jaeger:
+    image: jaegertracing/all-in-one    
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+# Enable tracing in WSO2    
+
 
   wso2:
     image: wso2/wso2am:latest
     container_name: wso2
-    restart: always
     ports:
       - "9443:9443"
       - "8243:8243"
       - "8280:8280"
-    links:
-      - app      
-    environment:
-      - HOST_NAME=testwso2
-      - WSO2_ANALYTICS_ENABLED=false
-      - WSO2_IS_ANALYTICS_ENABLED=false
-      - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
-      - WSO2_CARBON_DB_USERNAME=user
-      - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
-      - WSO2_USER=user
-      - WSO2_PASSWORD=myname
-      - WSO2_APIM_GT_WK=true
-      - WSO2_APIM_KEY_MANAGER_GT_WK=true
-    depends_on:
-      databasemysql:
-        condition: service_healthy
+      - "5005:5005"
 
+    environment:
+      - USER=root
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+      - JAEGER_SERVICE_NAME=my-wso2-service
+      - JAEGER_SAMPLER_TYPE=const
+      - JAEGER_SAMPLER_PARAM=1
+      - JAEGER_REPORTER_LOG_SPANS=true
+      - JAEGER_REPORTER_FLUSH_INTERVAL=500ms
+    networks:
+        mynet:
+          ipv4_address: 172.28.5.10     
+    volumes:
+      - wso2_data:/home/wso2carbon/wso2am-4.0.0/repository/deployment/server
+      - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf
+      - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml
+    
 networks:
-      mynet:
-        driver: bridge
+  mynet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+          ip_range: 172.28.5.0/24
+
+volumes:
+  wso2_data:
+  wso2_conf:
+
+  #   ports:
+  #     - "9443:9443"
+  #     - "8243:8243"
+  #     - "8280:8280"
+  #     - "5005:5005"
+  #   environment:
+  #     - USER=root     
+  #  # links:
+  #  #   - app      
+  #  # extra_hosts:
+  #  #   - "wso2test:172.28.5.10"      
+  #  # volumes:
+  #  #   - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml 
+  #   #environment:
+  #    # - HOST_NAME=testwso2
+  #    # - WSO2_ANALYTICS_ENABLED=false
+  #    # - WSO2_IS_ANALYTICS_ENABLED=false
+  #    # - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
+  #    # - WSO2_CARBON_DB_USERNAME=user
+  #    # - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
+  #    # - WSO2_USER=user
+  #    # - WSO2_PASSWORD=myname
+  #    # - WSO2_APIM_GT_WK=true
+  #    # - WSO2_APIM_KEY_MANAGER_GT_WK=true
+  #   depends_on:
+  #     databasemysql:
+  #       condition: service_healthy
+  
+
+
+#    ipam:
+#      config:
+#        - subnet: 172.28.0.0/16
+#          gateway: 172.28.0.1
+#          ip_range: 172.28.5.0/24
+
