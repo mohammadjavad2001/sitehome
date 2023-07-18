@@ -14,8 +14,24 @@ create_admin_account = true
 type = "database_unique_id"
 
 
+#[apim.open_telemetry]
+#log_tracer.enable=true
+#remote_tracer.name="jaeger"
+#remote_tracer.hostname="172.28.5.11"
+#remote_tracer.port=1450
 
 
+
+[apim.open_tracer]
+remote_tracer.name = "jaeger"
+remote_tracer.properties.hostname = "172.28.5.11"
+remote_tracer.properties.port = "6831"
+remote_tracer.enable = true
+log_tracer.enable = true
+#
+#[transport.jaeger]
+#reporter.hostname = "jaeger"
+#reporter.port = 6831
 
 [database.apim_db]
 type = "h2"

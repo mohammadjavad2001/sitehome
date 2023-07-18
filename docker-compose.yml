@@ -5,13 +5,14 @@ services:
     image: mysql:latest
     restart: always 
     networks:
-     - mynet
-        #ipv4_address: 172.28.5.7    
+      mynet:
+        ipv4_address: 172.28.5.7    
     environment:
       - MYSQL_DATABASE=HELLOMY
       - MYSQL_USER=user
       - MYSQL_PASSWORD=12345789!6mJb
       - MYSQL_ROOT_PASSWORD=123457891012!6mJb
+      - MYSQL_HOST=172.28.5.7
     ports:
         - "3306:3306"
     healthcheck:
@@ -23,8 +24,8 @@ services:
 
   rediscache:
     networks:
-     - mynet
-     #   ipv4_address: 172.28.5.8  
+     mynet:
+        ipv4_address: 172.28.5.8  
     image: redis:latest
     ports:
       - 6379:6379
@@ -41,15 +42,17 @@ services:
     ports:
       - "8080:8080"
     networks:
-     - mynet
-     #   ipv4_address: 172.28.5.9     
+      mynet:
+        ipv4_address: 172.28.5.9     
 
     volumes:
 
       - /home/uswr/Desktop/site2/:/project
       #- sitehome:/home/Desktop/site2
-    #environment:
-    #  - DATABASE_URL=mysql+pymysql://user:12345789!6mJb@databasemysql:3306/HELLOMY
+    environment:
+      - OTELE_TRACE=true
+      - OTEL_EXPORTER_OTLP_INSECURE=False
+
     depends_on:
      rediscache:
         condition: service_healthy
@@ -68,13 +71,16 @@ services:
   jaeger:
     image: jaegertracing/all-in-one    
     ports:
-      - "5775:5775/udp"
-      - "6831:6831/udp"
-      - "6832:6832/udp"
+      - "5775:5775"
+      - "6831:6831"
+      - "6832:6832"
       - "5778:5778"
       - "16686:16686"
       - "14268:14268"
       - "9411:9411"
+    networks:
+        mynet:
+          ipv4_address: 172.28.5.11
 # Enable tracing in WSO2    
 
 
@@ -89,21 +95,46 @@ services:
 
     environment:
       - USER=root
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_AGENT_PORT=6831
-      - JAEGER_SERVICE_NAME=my-wso2-service
-      - JAEGER_SAMPLER_TYPE=const
-      - JAEGER_SAMPLER_PARAM=1
-      - JAEGER_REPORTER_LOG_SPANS=true
-      - JAEGER_REPORTER_FLUSH_INTERVAL=500ms
+    #  - JAEGER_AGENT_HOST=jaeger
+    #  - JAEGER_AGENT_PORT=6831
+    #  - JAEGER_SERVICE_NAME=my-wso2-service
+    #  - JAEGER_SAMPLER_TYPE=const
+    #  - JAEGER_SAMPLER_PARAM=1
+    #  - JAEGER_REPORTER_LOG_SPANS=true
+    #  - JAEGER_REPORTER_FLUSH_INTERVAL=500ms
+    #  - JAEGER_SAMPLER_MANAGER_HOST_PORT=jaeger:5778
+    #  - HOST_NAME=testwso2
+    #  - WSO2_ANALYTICS_ENABLED=false
+    #  - WSO2_IS_ANALYTICS_ENABLED=false
+    #  - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
+    #  - WSO2_CARBON_DB_USERNAME=user
+    #  - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
+    #  - WSO2_USER=user
+    #  - WSO2_PASSWORD=myname
+    #  - WSO2_APIM_GT_WK=true
+    #  - WSO2_APIM_KEY_MANAGER_GT_WK=true
     networks:
         mynet:
           ipv4_address: 172.28.5.10     
     volumes:
-      - wso2_data:/home/wso2carbon/wso2am-4.0.0/repository/deployment/server
-      - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf
+      - wso2_data:/home/wso2carbon/wso2am-4.0.0/repository/deployment/server/
+      - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf/
+      - ./config/log4j2.properties:/home/wso2carbon/wso2am-4.0.0/repository/conf/log4j2.properties
       - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml
-    
+     # - ./config/axis2.xml:/home/wso2carbon/wso2am-4.0.0/repository/conf/axis2/axis2.xml
+      
+ # elasticsearch:
+ #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+ #   environment:
+ #     - discovery.type=single-node
+ #   volumes:
+ #     - elasticsearch_data:/usr/share/elasticsearch/data
+ #   ports:
+ #     - 9200:9200
+ #     - 9300:9300 
+ #   networks:
+ #       mynet:
+ #         ipv4_address: 172.28.5.12     
 networks:
   mynet:
     driver: bridge
@@ -117,39 +148,4 @@ volumes:
   wso2_data:
   wso2_conf:
 
-  #   ports:
-  #     - "9443:9443"
-  #     - "8243:8243"
-  #     - "8280:8280"
-  #     - "5005:5005"
-  #   environment:
-  #     - USER=root     
-  #  # links:
-  #  #   - app      
-  #  # extra_hosts:
-  #  #   - "wso2test:172.28.5.10"      
-  #  # volumes:
-  #  #   - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml 
-  #   #environment:
-  #    # - HOST_NAME=testwso2
-  #    # - WSO2_ANALYTICS_ENABLED=false
-  #    # - WSO2_IS_ANALYTICS_ENABLED=false
-  #    # - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
-  #    # - WSO2_CARBON_DB_USERNAME=user
-  #    # - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
-  #    # - WSO2_USER=user
-  #    # - WSO2_PASSWORD=myname
-  #    # - WSO2_APIM_GT_WK=true
-  #    # - WSO2_APIM_KEY_MANAGER_GT_WK=true
-  #   depends_on:
-  #     databasemysql:
-  #       condition: service_healthy
-  
-
-
-#    ipam:
-#      config:
-#        - subnet: 172.28.0.0/16
-#          gateway: 172.28.0.1
-#          ip_range: 172.28.5.0/24
 

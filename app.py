@@ -21,10 +21,40 @@ from sqlalchemy.orm import Session
 from schemas.user import EmailSchema, User,UserUpdate,AdvertisingBase,Userreg,LoginUser,Adversupdate
 from sqlalchemy import exc
 from typing_extensions import Annotated
-from typing import List, Union
+from typing import Any, List, Union
 from cryptography.fernet import Fernet
 from models import crud
+from opentelemetry import trace    
+
 import json
+otel_trace: Any = os.environ.get("OTELE_TRACE")
+print(otel_trace)
+if otel_trace == "true":  # pragma: no cover
+    from opentelemetry import trace
+    from opentelemetry.exporter import jaeger
+#    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (OTLPSpanExporter,)
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.sdk.resources import Resource
+
+    # from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+
+
+    trace.set_tracer_provider(TracerProvider())
+    trace_exporter = jaeger.JaegerSpanExporter(
+         service_name="fastapiproject",
+         agent_host_name="172.28.5.11",
+         agent_port=6832)
+    tracer = trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(trace_exporter))
+    FastAPIInstrumentor.instrument_app(app)
+    from config.db import engine
+    SQLAlchemyInstrumentor.instrument(engine=engine)
+    print("fefeffrgrgplegplreglr[epg]")
+else:
+    pass
+    
 def get_db():
     db = SessionLocal()
     try:

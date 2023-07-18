@@ -6,8 +6,9 @@ from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
 
 
 
-engine = create_engine('mysql+pymysql://user:12345789!6mJb@databasemysql:3306/HELLOMY')   
+engine = create_engine('mysql+pymysql://user:12345789!6mJb@172.28.5.7:3306/HELLOMY')   
 meta = MetaData()
+
 SessionLocal = sessionmaker(bind=engine)
 conn = engine.connect()
 print("DOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWNNNNNNNNNNNNNNNNNNNNNNNNN")
