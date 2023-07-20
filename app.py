@@ -29,31 +29,82 @@ from opentelemetry import trace
 import json
 otel_trace: Any = os.environ.get("OTELE_TRACE")
 print(otel_trace)
-if otel_trace == "true":  # pragma: no cover
+if otel_trace == "true": 
+ #   from opentelemetry import trace
+ #   from opentelemetry.trace import SpanKind
+ #   from opentelemetry.sdk.trace import TracerProvider
+ #   from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+ #   from opentelemetry.sdk.trace.export import BatchSpanProcessor
+ #   from opentelemetry.sdk.resources import Resource
+#
+ #   resource = Resource(attributes={
+ #       "service.name": "my_service1"
+ #   })
+#
+ #   trace.set_tracer_provider(TracerProvider(resource=resource))
+#
+ #   otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
+#
+#
+ #   trace.get_tracer_provider().add_span_processor(
+ #       BatchSpanProcessor(otlp_exporter)
+ #   )
+#
+ #   tracer = trace.get_tracer(__name__)
+#
+ #   with tracer.start_as_current_span("foo", kind=SpanKind.SERVER):
+ #       with tracer.start_as_current_span("bar", kind=SpanKind.SERVER):
+ #           with tracer.start_as_current_span("baz", kind=SpanKind.SERVER):
+ #               print("Hello world from OpenTelemetry Python!")
     from opentelemetry import trace
-    from opentelemetry.exporter import jaeger
-#    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (OTLPSpanExporter,)
+    from opentelemetry.exporter.jaeger import thrift
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
     from opentelemetry.sdk.resources import Resource
-
-    # from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
     from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchExportSpanProcessor
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
+    #from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (OTLPSpanExporter,)
+    # from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
 
-    trace.set_tracer_provider(TracerProvider())
-    trace_exporter = jaeger.JaegerSpanExporter(
-         service_name="fastapiproject",
+    trace.set_tracer_provider(TracerProvider(resource=Resource.create(attributes={"service.name": "my_service","service_name":"fasttt"}))) 
+    trace_exporter = thrift.JaegerExporter(
          agent_host_name="172.28.5.11",
-         agent_port=6832)
+         agent_port=6831)
     tracer = trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(trace_exporter))
     FastAPIInstrumentor.instrument_app(app)
     from config.db import engine
-    SQLAlchemyInstrumentor.instrument(engine=engine)
-    print("fefeffrgrgplegplreglr[epg]")
+    dbinstrumentor = SQLAlchemyInstrumentor()
+    dbinstrumentor.instrument(engine=engine)
+    print("jaeger connected to fastapi")
 else:
-    pass
+        pass
+from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
+import elasticapm.instrumentation.control as instr
+apm_config = {
+'SERVICE_NAME': 'DemoFastAPI',
+'DEBUG': True,
+'SERVER_URL': 'http://172.28.5.20:8200',
+'CAPTURE_HEADERS': True,
+'ENVIRONMENT': 'dev',
+'CAPTURE_BODY': 'all',
+'GLOBAL_LABELS': 'platform=DemoPlatform, application=DemoApplication',
+'SECRET_TOKEN': 'cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c'
+}
+#
+apm = make_apm_client(apm_config)
+#
+#apm = make_apm_client(apm_config)
+##apm = ElasticAPM(app=app,client=apm,service_name="my-fastapi-app", secret_token="cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c",service_url="http://172.28.5.20:9200")
+##app.add_middleware(ElasticAPM, client=apm)
+server_url = 'http://172.28.5.20:8200'
+service_name = 'DemoFlask'
+environment = 'dev'
+#apm = ElasticAPM(app, server_url=server_url, 
+#      service_name=service_name, environment=environment,client =)
+
+app.add_middleware(ElasticAPM, client=apm)
+print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
     
 def get_db():
     db = SessionLocal()
@@ -67,9 +118,6 @@ f = Fernet(Key)
 #@user.get("/users")
 #def get_users():
 #    return conn.execute(users.select()).fetchall()
-
-
-
 #@user.post("/usersbytable")
 #def create_user(user: User):
 #    print(user)

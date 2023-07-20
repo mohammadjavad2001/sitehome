@@ -36,7 +36,7 @@ services:
       timeout: 5s
       retries: 5      
 
-          
+       
   app:
     build: .
     ports:
@@ -49,15 +49,21 @@ services:
 
       - /home/uswr/Desktop/site2/:/project
       #- sitehome:/home/Desktop/site2
-    environment:
-      - OTELE_TRACE=true
-      - OTEL_EXPORTER_OTLP_INSECURE=False
+   # environment:
+   #   #- OTELE_TRACE=true
+   #   - OTEL_EXPORTER_OTLP_INSECURE=False
+   #   - ELASTIC_APM_SERVICE_NAME=fastapi-545
+   #   - ELASTIC_APM_SERVER_URL=http://172.28.5.20:8200
+   #   - ELASTIC_APM_SECRET_TOKEN=cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c
 
     depends_on:
      rediscache:
         condition: service_healthy
      databasemysql:
         condition: service_healthy
+     apm:
+        condition: service_healthy 
+
       
         #condition: service_healthy  
     #command: sh -c "/wait && uvicorn app:app --host 0.0.0.0 --port 8080 --reload "
@@ -68,73 +74,144 @@ services:
     # - WAIT_SLEEP_INTERVAL=30
     # 
     #  - WAIT_HOST_CONNECT_TIMEOUT=30
-  jaeger:
-    image: jaegertracing/all-in-one    
-    ports:
-      - "5775:5775"
-      - "6831:6831"
-      - "6832:6832"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "9411:9411"
-    networks:
-        mynet:
-          ipv4_address: 172.28.5.11
+ #jaeger:
+ #  image: jaegertracing/all-in-one    
+ #  ports:
+ #    - "5775:5775"
+ #    - "6831:6831"
+ #    - "6832:6832"
+ #    - "5778:5778"
+ #    - "16686:16686"
+ #    - "14268:14268"
+ #    - "9411:9411"
+ #  environment:
+ #   - METRICS_STORAGE_TYPE=prometheus
+ #   - PROMETHEUS_SERVER_URL=http://175.28.5.12:9090      
+
+ #   - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=true
+ #   - PROMETHEUS_QUERY_NAMESPACE=span_metrics
+ #   - PROMETHEUS_QUERY_DURATION_UNIT=s
+
+#
+   # networks:
+   #     mynet:
+   #       ipv4_address: 172.28.5.11
 # Enable tracing in WSO2    
-
-
-  wso2:
-    image: wso2/wso2am:latest
-    container_name: wso2
-    ports:
-      - "9443:9443"
-      - "8243:8243"
-      - "8280:8280"
-      - "5005:5005"
-
-    environment:
-      - USER=root
-    #  - JAEGER_AGENT_HOST=jaeger
-    #  - JAEGER_AGENT_PORT=6831
-    #  - JAEGER_SERVICE_NAME=my-wso2-service
-    #  - JAEGER_SAMPLER_TYPE=const
-    #  - JAEGER_SAMPLER_PARAM=1
-    #  - JAEGER_REPORTER_LOG_SPANS=true
-    #  - JAEGER_REPORTER_FLUSH_INTERVAL=500ms
-    #  - JAEGER_SAMPLER_MANAGER_HOST_PORT=jaeger:5778
-    #  - HOST_NAME=testwso2
-    #  - WSO2_ANALYTICS_ENABLED=false
-    #  - WSO2_IS_ANALYTICS_ENABLED=false
-    #  - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
-    #  - WSO2_CARBON_DB_USERNAME=user
-    #  - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
-    #  - WSO2_USER=user
-    #  - WSO2_PASSWORD=myname
-    #  - WSO2_APIM_GT_WK=true
-    #  - WSO2_APIM_KEY_MANAGER_GT_WK=true
-    networks:
-        mynet:
-          ipv4_address: 172.28.5.10     
-    volumes:
-      - wso2_data:/home/wso2carbon/wso2am-4.0.0/repository/deployment/server/
-      - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf/
-      - ./config/log4j2.properties:/home/wso2carbon/wso2am-4.0.0/repository/conf/log4j2.properties
-      - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml
-     # - ./config/axis2.xml:/home/wso2carbon/wso2am-4.0.0/repository/conf/axis2/axis2.xml
-      
- # elasticsearch:
- #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
- #   environment:
- #     - discovery.type=single-node
- #   volumes:
- #     - elasticsearch_data:/usr/share/elasticsearch/data
+  
+  #prometheus:
+  #  image: prom/prometheus:v2.36.2
+  #  volumes:
+  #    - "./config/prometheus.yml:/etc/prometheus/prometheus.yml"
+  #   
+  #  command:
+  #    - '--config.file=/etc/prometheus/prometheus.yml'
+  #    - '--storage.tsdb.path=/prometheus'
+  #    - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+  #    - '--web.console.templates=/usr/share/prometheus/consoles'
+  #  ports:
+  #    - 9090:9090
+  #  networks:
+  #      mynet:
+  #        ipv4_address: 172.28.5.12
+ # wso2:
+ #   image: wso2/wso2am:latest
+ #   container_name: wso2
  #   ports:
- #     - 9200:9200
- #     - 9300:9300 
+ #     - "9443:9443"
+ #     - "8243:8243"
+ #     - "8280:8280"
+ #     - "5005:5005"
+ #
+ #   environment:
+ #     - USER=root
+ #   #  - JAEGER_AGENT_HOST=jaeger
+ #   #  - JAEGER_AGENT_PORT=6831
+ #   #  - JAEGER_SERVICE_NAME=my-wso2-service
+ #   #  - JAEGER_SAMPLER_TYPE=const
+ #   #  - JAEGER_SAMPLER_PARAM=1
+ #   #  - JAEGER_REPORTER_LOG_SPANS=true
+ #   #  - JAEGER_REPORTER_FLUSH_INTERVAL=500ms
+ #   #  - JAEGER_SAMPLER_MANAGER_HOST_PORT=jaeger:5778
+ #   #  - HOST_NAME=testwso2
+ #   #  - WSO2_ANALYTICS_ENABLED=false
+ #   #  - WSO2_IS_ANALYTICS_ENABLED=false
+ #   #  - WSO2_CARBON_DB_URL=jdbc:mysql://databasemysql:3306/wso2carbon_db?useSSL=false
+ #   #  - WSO2_CARBON_DB_USERNAME=user
+ #   #  - WSO2_CARBON_DB_PASSWORD=123456789!6mJb
+ #   #  - WSO2_USER=user
+ #   #  - WSO2_PASSWORD=myname
+ #   #  - WSO2_APIM_GT_WK=true
+ #   #  - WSO2_APIM_KEY_MANAGER_GT_WK=true
  #   networks:
  #       mynet:
- #         ipv4_address: 172.28.5.12     
+ #         ipv4_address: 172.28.5.10     
+ #   volumes:
+ #     - wso2_data:/home/wso2carbon/wso2am-4.0.0/repository/deployment/server/
+ #     - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf/
+ #     - ./config/log4j2.properties:/home/wso2carbon/wso2am-4.0.0/repository/conf/log4j2.properties
+ #     - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml
+ #    # - ./config/axis2.xml:/home/wso2carbon/wso2am-4.0.0/repository/conf/axis2/axis2.xml
+
+ # otel_collector:
+ #   networks:
+ #       mynet:
+ #         ipv4_address: 172.28.5.15     
+ #   image: otel/opentelemetry-collector-contrib
+ #   volumes:
+ #     - ./config/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml
+ #   command: --config /etc/otelcol/otel-collector-config.yml
+ #   ports:
+ #     - "4317:4317"
+ #   depends_on:
+ #     - jaeger 
+  elasticsearch:
+    #image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    image: elasticsearch:7.17.10
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+    networks:
+        mynet:
+          ipv4_address: 172.28.5.17
+    ports:
+      - 9200:9200
+      - 9300:9300
+  
+  kibana:
+    #image: docker.elastic.co/kibana/kibana:7.11.0
+    image: kibana:7.17.10
+    environment:
+      - ELASTICSEARCH_HOSTS=http://172.28.5.17:9200
+    networks:
+        mynet:
+          ipv4_address: 172.28.5.19
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+  apm:
+    image: docker.elastic.co/apm/apm-server:7.17.10
+    environment:
+      - output.elasticsearch.hosts=["elasticsearch:9200"]
+    command: 
+      apm-server -e
+       -E apm-server.rum.enabled=true
+       -E setup.kibana.host=kibana:5601
+       -E setup.template.settings.index.number_of_replicas=0
+       -E apm-server.kibana.enabled=true
+       -E apm-server.kibana.host=kibana:5601
+       -E output.elasticsearch.hosts=["elasticsearch:9200"]      
+    ports:
+      - "8200:8200"
+    depends_on:
+      - elasticsearch
+    healthcheck:
+      interval: 10s
+      retries: 12
+      test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/      
+    networks:
+        mynet:
+          ipv4_address: 172.28.5.20      
 networks:
   mynet:
     driver: bridge
@@ -149,3 +226,16 @@ volumes:
   wso2_conf:
 
 
+      
+ # elasticsearch:
+ #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+ #   environment:
+ #     - discovery.type=single-node
+ #   volumes:
+ #     - elasticsearch_data:/usr/share/elasticsearch/data
+ #   ports:
+ #     - 9200:9200
+ #     - 9300:9300 
+ #   networks:
+ #       mynet:
+ #         ipv4_address: 172.28.5.12    

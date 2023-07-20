@@ -20,3 +20,4 @@ opentelemetry-exporter-otlp-proto-grpc==1.19.0
 opentelemetry-exporter-jaeger==1.19.0
 opentelemetry-instrumentation-fastapi==0.40b
 opentelemetry-instrumentation-sqlalchemy==0.40b0
+elastic-apm
