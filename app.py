@@ -30,55 +30,83 @@ import json
 otel_trace: Any = os.environ.get("OTELE_TRACE")
 print(otel_trace)
 if otel_trace == "true": 
- #   from opentelemetry import trace
- #   from opentelemetry.trace import SpanKind
- #   from opentelemetry.sdk.trace import TracerProvider
- #   from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
- #   from opentelemetry.sdk.trace.export import BatchSpanProcessor
- #   from opentelemetry.sdk.resources import Resource
+ #  from opentelemetry import trace
+ #  from opentelemetry.trace import SpanKind
+ #  from opentelemetry.sdk.trace import TracerProvider
+ #  from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+ #  from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+ #  from opentelemetry.sdk.trace.export import BatchSpanProcessor
+ #  from opentelemetry.sdk.resources import Resource
+ #  resource = Resource(attributes={
+ #      "service.name": "my_service1"
+ #  })
 #
- #   resource = Resource(attributes={
- #       "service.name": "my_service1"
- #   })
-#
- #   trace.set_tracer_provider(TracerProvider(resource=resource))
-#
- #   otlp_exporter = OTLPSpanExporter(endpoint="http://localhost:4317", insecure=True)
-#
-#
- #   trace.get_tracer_provider().add_span_processor(
- #       BatchSpanProcessor(otlp_exporter)
- #   )
-#
- #   tracer = trace.get_tracer(__name__)
-#
- #   with tracer.start_as_current_span("foo", kind=SpanKind.SERVER):
- #       with tracer.start_as_current_span("bar", kind=SpanKind.SERVER):
- #           with tracer.start_as_current_span("baz", kind=SpanKind.SERVER):
- #               print("Hello world from OpenTelemetry Python!")
-    from opentelemetry import trace
-    from opentelemetry.exporter.jaeger import thrift
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-    from opentelemetry.sdk.resources import Resource
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
-
-    #from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (OTLPSpanExporter,)
-    # from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
-
-    trace.set_tracer_provider(TracerProvider(resource=Resource.create(attributes={"service.name": "my_service","service_name":"fasttt"}))) 
-    trace_exporter = thrift.JaegerExporter(
-         agent_host_name="172.28.5.11",
-         agent_port=6831)
-    tracer = trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(trace_exporter))
-    FastAPIInstrumentor.instrument_app(app)
-    from config.db import engine
-    dbinstrumentor = SQLAlchemyInstrumentor()
-    dbinstrumentor.instrument(engine=engine)
-    print("jaeger connected to fastapi")
+ #  trace.set_tracer_provider(TracerProvider(resource=resource))
+ #  otlp_exporter = OTLPSpanExporter(endpoint="http://172.28.5.11:14250", insecure=True)
+ #  trace.get_tracer_provider().add_span_processor(
+ #      BatchSpanProcessor(otlp_exporter)
+ #  )
+ #  tracer = trace.get_tracer(__name__)
+ #  with tracer.start_as_current_span("foo", kind=SpanKind.SERVER):
+ #      with tracer.start_as_current_span("bar", kind=SpanKind.SERVER):
+ #          with tracer.start_as_current_span("baz", kind=SpanKind.SERVER):
+ #              print("Hello world from OpenTelemetry Python!").
+ #   
+ #  resource = Resource(attributes={
+ #      "service.name": "wwdwwd"
+ #  })
+ #  
+ #  jaeger_exporter = JaegerExporter(
+ #      agent_host_name="172.28.5.11",
+ #      agent_port=6831,
+ #  )
+ #  
+ #  provider = TracerProvider(resource=resource)
+ #  processor = BatchSpanProcessor(jaeger_exporter)
+ #  provider.add_span_processor(processor)
+ #  trace.set_tracer_provider(provider)
+ # 
+   #from opentelemetry import metrics
+   #from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+   #from opentelemetry.sdk.metrics import MeterProvider
+   #from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+   #from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+   #resource = Resource(attributes={
+   # SERVICE_NAME: "your-name"
+   # })
+   #reader = OTLPMetricExporter(endpoint="172.28.5.11:14269")
+   # #     - "14268:14268"
+   # 
+   # #  - "14269:14269"
+   # #  - "4317:4317"
+   # #  - "4318:4318"
+   # #  - "14250:14250"
+   #provider = MeterProvider(resource=resource, metric_readers=[reader])
+   #metrics.set_meter_provider(provider)
+   from opentelemetry import trace
+   from opentelemetry.exporter.jaeger import thrift
+   from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+   from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+   from opentelemetry.sdk.resources import Resource
+   from opentelemetry.sdk.trace import TracerProvider
+   from opentelemetry.sdk.trace.export import BatchSpanProcessor
+   #from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (OTLPSpanExporter,)
+   # from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
+   trace.set_tracer_provider(TracerProvider(resource=Resource.create(attributes={"service.name": "MONITORAPI","service_name":"fasttt"}))) 
+   trace_exporter = thrift.JaegerExporter(
+        agent_host_name="172.28.5.11",
+        agent_port=6831)
+   tracer = trace.get_tracer_provider().add_span_processor(BatchSpanProcessor(trace_exporter))
+   FastAPIInstrumentor.instrument_app(app)
+   from config.db import engine
+   dbinstrumentor = SQLAlchemyInstrumentor()
+   dbinstrumentor.instrument(engine=engine)
+   print("jaeger connected to fastapi")
 else:
         pass
+
+
+#APM ELASTIC SEARCH
 from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
 import elasticapm.instrumentation.control as instr
 apm_config = {
@@ -105,7 +133,12 @@ environment = 'dev'
 
 app.add_middleware(ElasticAPM, client=apm)
 print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
-    
+
+
+
+
+
+
 def get_db():
     db = SessionLocal()
     try:
@@ -267,7 +300,9 @@ def create_advers1(advers: AdvertisingBase, db: Session = Depends(get_db)):
 
 
 @app.get("/getallusers/",response_model=List[User])
-def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def read_users(db: Session = Depends(get_db)):
+        skip=0
+        limit=100
         users = crud.get_users(db, skip=skip, limit=limit)
 
         return users
@@ -295,7 +330,7 @@ def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    result = crud.update_user(db,db_advers=db_user,updateuser=user)
+    result = crud.update_user(db,db_user=db_user,updateuser=user)
     return result  
 
 
@@ -379,7 +414,7 @@ def update_advers(advers_id:int,token:Annotated[str,Depends(oauth2_scheme)],adve
         advers1_id=crud.get_advers(db=db,advers_id=advers_id).user
         if(advers1_id==user_id):
              advers1=crud.get_advers(db=db,advers_id=advers_id)                                         
-             crud.update_user(db=db,db_advers=advers1,updateadvers=advers_update)
+             crud.update_advers(db=db,db_advers=advers1,updateadvers=advers_update)
              return status.HTTP_202_ACCEPTED
         else:
              raise credentials_exception

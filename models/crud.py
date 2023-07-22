@@ -47,7 +47,7 @@ def update_user(db: Session,db_user:pydantic_models.User,updateuser:pydantic_mod
     db.commit()
     db.refresh(db_user)
     return db_user
-def update_user(db: Session,db_advers:pydantic_models.AdvertisingBase,updateadvers:pydantic_models.Adversupdate):
+def update_advers(db: Session,db_advers:pydantic_models.AdvertisingBase,updateadvers:pydantic_models.Adversupdate):
     update_data = updateadvers.dict(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_advers, key, value)
