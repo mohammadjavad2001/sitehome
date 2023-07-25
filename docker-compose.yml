@@ -36,7 +36,7 @@ services:
       timeout: 5s
       retries: 5      
 
-       
+      
   app:
     build: .
     ports:
@@ -63,7 +63,18 @@ services:
         condition: service_healthy
      #apm:
      #   condition: service_healthy 
+  nginx:
+    image: nginx:latest
+    ports:
+      - "88:80"
+    volumes:
+      - ./config/nginx.conf:/etc/nginx/nginx.conf
+    networks:
+      mynet:
+        ipv4_address: 172.28.5.70     
 
+    depends_on:
+      - app
       
         #condition: service_healthy  
     #command: sh -c "/wait && uvicorn app:app --host 0.0.0.0 --port 8080 --reload "
@@ -74,47 +85,47 @@ services:
     # - WAIT_SLEEP_INTERVAL=30
     # 
     #  - WAIT_HOST_CONNECT_TIMEOUT=30
-  jaeger:
-    image: jaegertracing/all-in-one    
-    ports:
-      - "5775:5775"
-      - "6831:6831"
-      - "6832:6832"
-      - "5778:5778"
-      - "16686:16686"
-      - "14268:14268"
-      - "14269:14269"
-      - "4317:4317"
-      - "4318:4318"
-      - "14250:14250"
-      - "9411:9411"
-    environment:
-     - METRICS_STORAGE_TYPE=prometheus
-     - PROMETHEUS_SERVER_URL=http://175.28.5.12:9090       
-     - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=true
-     - PROMETHEUS_QUERY_NAMESPACE=span_metrics
-     - PROMETHEUS_QUERY_DURATION_UNIT=s
-     - AGENT_HOST_PORT=otel-collector:55678
-     - COLLECTOR_OTLP_ENABLED=true
-    networks:
-       mynet:
-         ipv4_address: 172.28.5.11
-
-  prometheus:
-    image: prom/prometheus:v2.36.2
-    volumes:
-      - "./config/prometheus.yml:/etc/prometheus/prometheus.yml"
-     
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - 9090:9090
-    networks:
-        mynet:
-          ipv4_address: 172.28.5.12
+  #jaeger:
+  #  image: jaegertracing/all-in-one    
+  #  ports:
+  #    - "5775:5775"
+  #    - "6831:6831"
+  #    - "6832:6832"
+  #    - "5778:5778"
+  #    - "16686:16686"
+  #    - "14268:14268"
+  #    - "14269:14269"
+  #    - "4317:4317"
+  #    - "4318:4318"
+  #    - "14250:14250"
+  #    - "9411:9411"
+  #  environment:
+  #   - METRICS_STORAGE_TYPE=prometheus
+  #   - PROMETHEUS_SERVER_URL=http://175.28.5.12:9090       
+  #   - PROMETHEUS_QUERY_SUPPORT_SPANMETRICS_CONNECTOR=true
+  #   - PROMETHEUS_QUERY_NAMESPACE=span_metrics
+  #   - PROMETHEUS_QUERY_DURATION_UNIT=s
+  #   - AGENT_HOST_PORT=otel-collector:55678
+  #   - COLLECTOR_OTLP_ENABLED=true
+  #  networks:
+  #     mynet:
+  #       ipv4_address: 172.28.5.11
+#
+  #prometheus:
+  #  image: prom/prometheus:v2.36.2
+  #  volumes:
+  #    - "./config/prometheus.yml:/etc/prometheus/prometheus.yml"
+  #   
+  #  command:
+  #    - '--config.file=/etc/prometheus/prometheus.yml'
+  #    - '--storage.tsdb.path=/prometheus'
+  #    - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+  #    - '--web.console.templates=/usr/share/prometheus/consoles'
+  #  ports:
+  #    - 9090:9090
+  #  networks:
+  #      mynet:
+  #        ipv4_address: 172.28.5.12
   wso2:
    image: wso2/wso2am:latest
    container_name: wso2
@@ -152,22 +163,23 @@ services:
      - wso2_conf:/home/wso2carbon/wso2am-4.0.0/repository/conf/
      - ./config/log4j2.properties:/home/wso2carbon/wso2am-4.0.0/repository/conf/log4j2.properties
      - ./config/deployment.toml:/home/wso2carbon/wso2am-4.0.0/repository/conf/deployment.toml
-    # - ./config/axis2.xml:/home/wso2carbon/wso2am-4.0.0/repository/conf/axis2/axis2.xml
+    # -./config/axis2.xml:/home/wso2carbon/wso2am-4.0.0/repository/conf/axis2/axis2.xml
 
-  otel_collector:
-    networks:
-        mynet:
-          ipv4_address: 172.28.5.15     
-    image: otel/opentelemetry-collector-contrib
-    environment:
-      -  OTEL_EXPORTER_METRICS_TEMPORALITY_PREFERENCE="CUMULATIVE"
-    volumes:
-      - ./config/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml
-    command: --config /etc/otelcol/otel-collector-config.yml
-    #ports:
-      #- "4317:4317"
-    depends_on:
-      - jaeger 
+  #otel_collector:
+  #  networks:
+  #      mynet:
+  #        ipv4_address: 172.28.5.15     
+  #  image: otel/opentelemetry-collector-contrib
+  #  environment:
+  #    -  OTEL_EXPORTER_METRICS_TEMPORALITY_PREFERENCE="CUMULATIVE"
+  #  volumes:
+  #    - ./config/otel-collector-config.yml:/etc/otelcol/otel-collector-config.yml
+  #  command: --config /etc/otelcol/otel-collector-config.yml
+  #  #ports:
+  #    #- "4317:4317"
+  #  depends_on:
+  #    - jaeger 
+      
  # elasticsearch:
  #   #image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
  #   image: elasticsearch:7.17.10
@@ -215,7 +227,8 @@ services:
  #     test: curl --write-out 'HTTP %{http_code}' --fail --silent --output /dev/null http://localhost:8200/      
  #   networks:
  #       mynet:
- #         ipv4_address: 172.28.5.20      
+ #         ipv4_address: 172.28.5.20   
+
 networks:
   mynet:
     driver: bridge

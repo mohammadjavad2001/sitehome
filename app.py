@@ -300,9 +300,9 @@ def create_advers1(advers: AdvertisingBase, db: Session = Depends(get_db)):
 
 
 @app.get("/getallusers/",response_model=List[User])
-def read_users(db: Session = Depends(get_db)):
-        skip=0
-        limit=100
+def read_users(db: Session = Depends(get_db),skip:int = 0, limit: int = 100):
+        
+
         users = crud.get_users(db, skip=skip, limit=limit)
 
         return users
