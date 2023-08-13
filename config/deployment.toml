@@ -14,7 +14,6 @@ create_admin_account = true
 type = "database_unique_id"
 
 
-
 #[apim.open_telemetry]
 #log_tracer.enable=true
 #remote_tracer.name="jaeger"

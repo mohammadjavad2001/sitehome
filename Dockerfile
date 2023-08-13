@@ -1,7 +1,7 @@
 FROM python:3.9
 
 WORKDIR /project
-COPY requirements.txt .
+COPY . .
 RUN pip install --ignore-installed -r requirements.txt
 #RUN opentelemetry-bootstrap --action=install
 

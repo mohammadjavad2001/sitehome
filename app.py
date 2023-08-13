@@ -300,10 +300,10 @@ def create_advers1(advers: AdvertisingBase, db: Session = Depends(get_db)):
 
 
 @app.get("/getallusers/",response_model=List[User])
-def read_users(db: Session = Depends(get_db),skip:int = 0, limit: int = 100):
-        
-
-        users = crud.get_users(db, skip=skip, limit=limit)
+def read_users(db: Session = Depends(get_db)):
+        skip= 0
+        limit = 100
+        users = crud.get_users(db=db, skip=skip, limit=limit)
 
         return users
 
@@ -374,6 +374,44 @@ def create_access_token(data: dict, expires_delta: timedelta):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt    
 
+def Authenticate(form_data: LoginUser,db:Session = Depends(get_db)):
+    db_user = crud.get_userbyusername(db=db,username=form_data.username)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Incorrect username or password")
+    
+    hashed_password = hash_pass=hashlib.md5(form_data.password.encode('utf-8')).hexdigest()
+    if not hashed_password == db_user.password:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+    return db_user
+
+
+
+
+
+@app.post("/token" ,response_model=Token)
+async def login_for_access_token(
+    form_data: LoginUser,db:Session = Depends(get_db)):
+
+    user = Authenticate(db=db, form_data=form_data)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    if (user.isactive==True):
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": user.username}, expires_delta=access_token_expires
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+         raise HTTPException(
+              status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
+              detail="User is not Active please verify your email"
+         )
+
 @app.post("/checktokenOK/")
 def get_current_user(token: Annotated[str,Depends(oauth2_scheme)],db:Session = Depends(get_db)):
     credentials_exception = HTTPException(
@@ -421,40 +459,3 @@ def update_advers(advers_id:int,token:Annotated[str,Depends(oauth2_scheme)],adve
     except JWTError:
         raise credentials_exception
 
-def Authenticate(form_data: LoginUser,db:Session = Depends(get_db)):
-    db_user = crud.get_userbyusername(db=db,username=form_data.username)
-    if not db_user:
-        raise HTTPException(status_code=404, detail="Incorrect username or password")
-    
-    hashed_password = hash_pass=hashlib.md5(form_data.password.encode('utf-8')).hexdigest()
-    if not hashed_password == db_user.password:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-
-    return db_user
-
-
-
-
-
-@app.post("/token" ,response_model=Token)
-async def login_for_access_token(
-    form_data: LoginUser,db:Session = Depends(get_db)):
-
-    user = Authenticate(db=db, form_data=form_data)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    if (user.isactive==True):
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={"sub": user.username}, expires_delta=access_token_expires
-        )
-        return {"access_token": access_token, "token_type": "bearer"}
-    else:
-         raise HTTPException(
-              status_code=status.HTTP_405_METHOD_NOT_ALLOWED,
-              detail="User is not Active please verify your email"
-         )

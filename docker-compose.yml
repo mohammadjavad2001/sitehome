@@ -20,8 +20,6 @@ services:
         interval: 30s
         timeout: 10s
         retries: 5 
-
-
   rediscache:
     networks:
      mynet:
@@ -39,6 +37,7 @@ services:
       
   app:
     build: .
+    image: fastapi_app:latest
     ports:
       - "8080:8080"
     networks:
