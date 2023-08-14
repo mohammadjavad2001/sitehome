@@ -4,9 +4,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
 
-os.getenv("password")
-
-engine = create_engine('mysql+pymysql://root:12345!6mJb@localhost:3306/HELLOMY')   
+password=os.getenv("MYSQL_ROOT_PASSWORD")
+print(password,"      dewdweqqqaa")
+engine = create_engine(f'mysql+pymysql://user:12345789!6mJb@172.28.5.7:3306/HELLOMY')   
 meta = MetaData()
 
 SessionLocal = sessionmaker(bind=engine)
