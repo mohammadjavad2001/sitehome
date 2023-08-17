@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+    spec:
+      containers:      
+      - name: fastapi
+        image: fast99:latest
+        imagePullPolicy: Never
+        #restartPolicy: Never
+        ports:
+        - containerPort: 8080
+        env:
+
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: password
+      #  volumeMounts:
+      #      - name: code-volume
+      #        mountPath: /project
+      #initContainers:  
+      #  - name: init-mysql
+      #    image: busybox
+      #    command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']       
+      #volumeClaimTemplates:
+      #  - metadata:
+      #      name: mysql-storage  # Name of t
+      #    spec:
+      #      accessModes: [ "ReadWriteOnce" ]
+      #    resources:
+      #        requests:
+      #        -  storage: 10Gi  # Adjust sto               
+      volumes:
+      - name: code-volume
+        hostPath:
+          # this field is optional
+          # directory location on host
+          path: /home/uswr/Desktop/site2
+          type: FileOrCreate

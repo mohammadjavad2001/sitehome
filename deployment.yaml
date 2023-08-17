@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysqldb
+        image: mysql:latest
+        imagePullPolicy: Never
+        env:
+        - name: MYSQL_DATABASE
+          value: HELLOMY
+        - name: MYSQL_USER
+          value: user
+        - name: MYSQL_PASSWORD
+          value: '12345789!6mJb'        
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: my-secret
+              key: password   
+        ports:
+        - containerPort: 3306 
+        #readinessProbe:
+        #  exec:
+        #    # Check we can execute queries over TCP (skip-networking is off).
+        #    command: ["mysqldb", "-h", "127.0.0.1", "-e", "SELECT 1"]
+        #readinessProbe:
+        #  exec:
+        #    command: 
+        #    - sh
+        #    - -c
+        #    - "curl -s http://localhost:3306" 
+        #  initialDelaySeconds: 10
+        #  periodSeconds: 5
+    # Mount path within the container
+
+      # - name: fastapi
+      #   image: fast99:latest
+      #   imagePullPolicy: Never
+      #   #restartPolicy: Never
+      #   ports:
+      #   - containerPort: 8080
+      #   env:
+
+      #   - name: MYSQL_ROOT_PASSWORD
+      #     valueFrom:
+      #       secretKeyRef:
+      #         name: my-secret
+      #         key: password
+      # #  volumeMounts:
+      # #      - name: code-volume
+      # #        mountPath: /project
+      # #initContainers:  
+      # #  - name: init-mysql
+      # #    image: busybox
+      # #    command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']       
+      # #volumeClaimTemplates:
+      # #  - metadata:
+      # #      name: mysql-storage  # Name of t
+      # #    spec:
+      # #      accessModes: [ "ReadWriteOnce" ]
+      # #    resources:
+      # #        requests:
+      # #        -  storage: 10Gi  # Adjust sto               
+      # volumes:
+      # - name: code-volume
+      #   hostPath:
+      #     # this field is optional
+      #     # directory location on host
+      #     path: /home/uswr/Desktop/site2
+      #     type: FileOrCreate

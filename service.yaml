@@ -1,0 +1,86 @@
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: myapp-deployment
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: myapp
+#   template:
+#     metadata:
+#       labels:
+#         app: myapp
+#     spec:
+#       containers:      
+      # - name: fastapi
+      #   image: fast99:latest
+      #   imagePullPolicy: Never
+      #   #restartPolicy: Never
+      #   ports:
+      #   - containerPort: 8080
+      #   env:
+
+      #   - name: MYSQL_ROOT_PASSWORD
+      #     valueFrom:
+      #       secretKeyRef:
+      #         name: my-secret
+      #         key: password
+      # #  volumeMounts:
+      # #      - name: code-volume
+      # #        mountPath: /project
+      # #initContainers:  
+      # #  - name: init-mysql
+      # #    image: busybox
+      # #    command: ['sh', '-c', 'echo -e "Checking for the availability of MySQL Server deployment"; while ! nc -z mysql 3306; do sleep 1; printf "-"; done; echo -e "  >> MySQL DB Server has started";']       
+      # #volumeClaimTemplates:
+      # #  - metadata:
+      # #      name: mysql-storage  # Name of t
+      # #    spec:
+      # #      accessModes: [ "ReadWriteOnce" ]
+      # #    resources:
+      # #        requests:
+      # #        -  storage: 10Gi  # Adjust sto               
+      # volumes:
+      # - name: code-volume
+      #   hostPath:
+      #     # this field is optional
+      #     # directory location on host
+      #     path: /home/uswr/Desktop/site2
+      #     type: FileOrCreate
+
+---
+apiVersion: v1  
+kind: Service
+metadata:
+  name: fastapi-service 
+spec:
+  selector:
+    app: myapp
+  type: NodePort     
+  ports:
+    - protocol: TCP  
+      port: 8081
+      targetPort: 8081
+  clusterIP: 10.96.5.6 
+  #first apply service the n apply deployments
+#http://192.168.49.2:30939/docs with this address can we see fastapi swagger
+#address of nodeip:nodeport
+# kubectl describe node minikube in address field 192.168.49.2
+# kubectl describe service fastapi-service nodeport 30939
+
+---
+apiVersion: v1
+kind: Service 
+metadata:
+  name: database-service
+spec:
+  selector: 
+    app: mysql
+
+    
+  ports:
+    - protocol: TCP
+      port: 3307
+      targetPort: 3306      
+  clusterIP: 10.96.5.8
