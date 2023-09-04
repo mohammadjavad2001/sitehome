@@ -32,9 +32,62 @@ services:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 15s
       timeout: 5s
-      retries: 5      
+      retries: 5   
+  dbpostgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=keyckoakdb
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      mynet:
+         ipv4_address: 172.28.5.80
+    healthcheck:
 
-      
+      test: [ "CMD", "pg_isready", "-q", "-d", "keyckoakdb", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keyckoak:
+    networks:
+     mynet:
+        ipv4_address: 172.28.5.90  
+    image: quay.io/keycloak/keycloak:legacy
+    ports:
+      - 8090:8080
+
+    environment:
+    #     DB_VENDOR: POSTGRES
+    #     DB_ADDR: dbpostgres
+    #     DB_DATABASE: keycloakdb
+    #     DB_USER: postgres
+    #     DB_SCHEMA: public
+    #     DB_PORT: 5432        
+    #    DB_PASSWORD: admin
+        KEYCLOAK_USER: admin
+        KEYCLOAK_PASSWORD: admin 
+
+      #- DB_VENDOR=POSTGRES
+      #- DB_ADDR=dbpostgres #172.28.5.80
+      #- DB_DATABASE=keyckoakdb
+      #- DB_USER=postgres
+      #- DB_SCHEMA=public
+      #- DB_PASSWORD=admin
+      #- DEBUG=true
+      #- DEBUG_PORT='*:8787'
+      #- DB_PORT=5432
+      #- DB_DATABASE=keycloakdb
+    volumes:
+      #- ./keycloak_data:/opt/jboss/keycloak/standalone/data/  
+      - ./config/standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml
+    depends_on:
+     dbpostgres:
+        condition: service_healthy
   app:
     build: .
     image: site2_app:latest
@@ -66,7 +119,8 @@ services:
     image: nginx:latest
     ports:
       - "88:80"
-      - "440:443"
+      - "443:443"
+      - "440:440"
       #- "9443:9443"
       #- "8243:8243"
       #- "8280:8280"
@@ -247,37 +301,6 @@ volumes:
   wso2_data:
   wso2_conf:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
  # elasticsearch:
  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
  #   environment:

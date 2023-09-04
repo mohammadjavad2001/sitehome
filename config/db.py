@@ -7,9 +7,9 @@ from sqlalchemy.ext.declarative import declarative_base,DeclarativeMeta
 password=os.getenv("MYSQL_ROOT_PASSWORD")
 
 print(password,"   dewdweqqqaa")
-
-engine = create_engine(f'mysql+pymysql://user:12345789!6mJb@10.96.5.8:3307/HELLOMY')   
-
+#engine = create_engine(f'mysql+pymysql://user:12345789!6mJb@10.96.5.8:3307/HELLOMY')  
+engine = create_engine(f'mysql+pymysql://user:12345789!6mJb@172.28.5.7:3306/HELLOMY')   
+ 
 meta = MetaData()
 
 SessionLocal = sessionmaker(bind=engine)

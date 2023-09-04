@@ -1,5 +1,5 @@
 [server]
-hostname = "0.0.0.0"
+hostname = "192.168.107.23"
 #offset=0
 base_path = "${carbon.protocol}://${carbon.host}:${carbon.management.port}"
 #discard_empty_caches = false
@@ -76,15 +76,15 @@ type = "hybrid"
 display_in_api_console = true
 description = "This is a hybrid gateway that handles both production and sandbox token traffic."
 show_as_token_endpoint_url = true
-service_url = "https://localhost:${mgt.transport.https.port}/services/"
+service_url = "https://0.0.0.0:${mgt.transport.https.port}/services/"
 username= "${admin.username}"
 password= "${admin.password}"
-ws_endpoint = "ws://localhost:9099"
-wss_endpoint = "wss://localhost:8099"
-http_endpoint = "http://localhost:${http.nio.port}"
-https_endpoint = "https://localhost:${https.nio.port}"
-websub_event_receiver_http_endpoint = "http://localhost:9021"
-websub_event_receiver_https_endpoint = "https://localhost:8021"
+ws_endpoint = "ws://0.0.0.0:9099"
+wss_endpoint = "wss://0.0.0.0:8099"
+http_endpoint = "http://0.0.0.0:${http.nio.port}"
+https_endpoint = "https://0.0.0.0:${https.nio.port}"
+websub_event_receiver_http_endpoint = "http://0.0.0.0:9021"
+websub_event_receiver_https_endpoint = "https://0.0.0.0:8021"
 
 [apim.sync_runtime_artifacts.gateway]
 gateway_labels =["Default"]
