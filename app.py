@@ -443,8 +443,12 @@ from fastapi_keycloak import FastAPIKeycloak, OIDCUser
 from fastapi.responses import RedirectResponse
 
 app = FastAPI()
+
+
+
 idp = FastAPIKeycloak(
-    server_url="http://0.0.0.0:8090/",
+    
+    server_url="http://keyckoak/auth/",
     client_id="fastapi",
     client_secret="mumS2R2HWA3S4eEzAOEp6iThMAd7ep3F",
     admin_client_secret="89Hz8ZQF3dh0diOGI7fnld9VXw18PNVo",
@@ -452,12 +456,14 @@ idp = FastAPIKeycloak(
     callback_uri="http://localhost:8080/docs"
 )
 
+
 idp.add_swagger_config(app)
 
 
 @app.get("/login")
 def login_redirect():
     return RedirectResponse(idp.login_uri)
+
 
 
 @app.post("/logout")
