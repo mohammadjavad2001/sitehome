@@ -47,6 +47,7 @@ services:
       mynet:
          ipv4_address: 172.28.5.80
     healthcheck:
+    
 
       test: [ "CMD", "pg_isready", "-q", "-d", "keyckoakdb", "-U", "postgres" ]
       interval: 10s
@@ -57,7 +58,7 @@ services:
     networks:
      mynet:
         ipv4_address: 172.28.5.90  
-    image: quay.io/keycloak/keycloak:legacy
+    image: jboss/keycloak
     ports:
       - 8090:8080
 
@@ -69,19 +70,24 @@ services:
     #     DB_SCHEMA: public
     #     DB_PORT: 5432        
     #    DB_PASSWORD: admin
-        KEYCLOAK_USER: admin
-        KEYCLOAK_PASSWORD: admin 
-
-      #- DB_VENDOR=POSTGRES
-      #- DB_ADDR=dbpostgres #172.28.5.80
-      #- DB_DATABASE=keyckoakdb
-      #- DB_USER=postgres
-      #- DB_SCHEMA=public
-      #- DB_PASSWORD=admin
-      #- DEBUG=true
-      #- DEBUG_PORT='*:8787'
-      #- DB_PORT=5432
-      #- DB_DATABASE=keycloakdb
+     # - KEYCLOAK_USER=admin
+     # - KEYCLOAK_PASSWORD=admin 
+       - KEYCLOAK_ADMIN=admin
+       - KEYCLOAK_ADMIN_PASSWORD=admin
+      #  - DB_VENDOR=postgres
+      #  - KC_DB=postgres
+      #  - KC_DB_URL=
+      #  - KC_DB_USERNAME=postgres
+      #  - KC_DB_PASSWORD=admin  
+       - DB_VENDOR=postgres
+       - DB_ADDR=dbpostgres #172.28.5.80 
+       - DB_DATABASE=keyckoakdb
+       - DB_USER=postgres
+       - DB_PASSWORD=admin
+       - DEBUG=true
+       - DEBUG_PORT='*:8787'
+       - DB_PORT=5432 #32769
+       - JDBC_PARAMS='enabledTLSProtocols=TLSv1.2' 
     volumes:
       #- ./keycloak_data:/opt/jboss/keycloak/standalone/data/  
       - ./config/standalone.xml:/opt/jboss/keycloak/standalone/configuration/standalone.xml

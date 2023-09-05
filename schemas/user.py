@@ -1,7 +1,8 @@
 from pydantic import BaseModel, EmailStr,Field,validator
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from typing import List, Optional
-from datetime import date
+from datetime import date,datetime
+
 class User(BaseModel):
     id: int
     username: str 
@@ -15,6 +16,17 @@ class User(BaseModel):
    
     class Config:
         orm_mode = True
+        
+class revoke_token(BaseModel):
+    id: int
+    token: str 
+    user_id: str
+    revoked_at: datetime
+    is_expired: bool
+   
+    class Config:
+        orm_mode = True
+ 
 class UserUpdate(BaseModel):
     username: str
     email:EmailStr

@@ -8,7 +8,16 @@ from schemas import user as pydantic_models
 
 def create_user(db: Session, user: pydantic_models.User):
     hash_pass=hashlib.md5(user.password.encode('utf-8')).hexdigest()
-    db_user = ormmodels.User(id=user.id,username = user.username,password=hash_pass,phone = user.phone,isactive = user.isactivate,email=user.email)
+    db_token = ormmodels.User(id=user.id,username = user.username,password=hash_pass,phone = user.phone,
+                             isactive = user.isactivate,email=user.email)
+    db.add(db_token)
+    db.commit()
+    db.refresh(db_token)
+    return db_token
+
+def create_revoke_token(db: Session, token: pydantic_models.revoke_token):
+    db_user = ormmodels.RevokedToken(id=token.id, token= token.token,user_id=token.user_id,
+                                     revoked_at=token.revoked_at,is_expired=token.is_expired)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

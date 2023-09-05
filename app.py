@@ -18,7 +18,7 @@ from fastapi_mail import FastMail, MessageSchema, MessageType
 import redis
 
 from sqlalchemy.orm import Session
-from schemas.user import EmailSchema, User,UserUpdate,AdvertisingBase,Userreg,LoginUser,Adversupdate
+from schemas.user import revoke_token,EmailSchema, User,UserUpdate,AdvertisingBase,Userreg,LoginUser,Adversupdate
 from sqlalchemy import exc
 from typing_extensions import Annotated
 from typing import Any, List, Union
@@ -26,6 +26,7 @@ from cryptography.fernet import Fernet
 from models import crud
 from opentelemetry import trace    
 
+#Jaeger
 import json
 otel_trace: Any = os.environ.get("OTELE_TRACE")
 print(otel_trace)
@@ -325,6 +326,7 @@ def read_user(user_id: int, db: Session = Depends(get_db)):
 
 @app.put("/updateuser/{user_id}", response_model=User,response_model_exclude_unset=True)
 def update_user(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    
     db_user = crud.get_user(db, user_id=user_id)
 
     if not db_user:
@@ -384,8 +386,8 @@ def Authenticate(form_data: LoginUser,db:Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
     return db_user
-
-
+#https://codevoweb.com/restful-api-with-python-fastapi-access-and-refresh-tokens/
+#for login lgoout
 
 
 
@@ -433,6 +435,55 @@ def get_current_user(token: Annotated[str,Depends(oauth2_scheme)],db:Session = D
     if user is None:
         raise credentials_exception
     return user
+
+from fastapi.responses import JSONResponse
+from datetime import datetime
+
+from fastapi_keycloak import FastAPIKeycloak, OIDCUser
+from fastapi.responses import RedirectResponse
+
+app = FastAPI()
+idp = FastAPIKeycloak(
+    server_url="http://0.0.0.0:8090/",
+    client_id="fastapi",
+    client_secret="mumS2R2HWA3S4eEzAOEp6iThMAd7ep3F",
+    admin_client_secret="89Hz8ZQF3dh0diOGI7fnld9VXw18PNVo",
+    realm="Fast",
+    callback_uri="http://localhost:8080/docs"
+)
+
+idp.add_swagger_config(app)
+
+
+@app.get("/login")
+def login_redirect():
+    return RedirectResponse(idp.login_uri)
+
+
+@app.post("/logout")
+def logout(token: Annotated[str,Depends(oauth2_scheme)],db:Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        print("DSV")
+        if username is None:
+            raise credentials_exception
+        
+    except JWTError:
+        raise credentials_exception
+    user = crud.get_userbyusername(db=db, username=username)
+    if user is None:
+        raise credentials_exception
+    # Revoke the token by adding it to the revoked_tokens table    
+    revoke_token = revoke_token(is_expired=False,id=random.randint(10000,99999),token=token,user_id=random.randint(1,50),revoked_at=datetime.now)
+    revoke_token_db=crud.create_revoke_token(db=db,token=revoked_token)
+    return JSONResponse(content=revoke_token_db,status_code=status.HTTP_202_ACCEPTED)
+
 
 
 @app.post("/adversupdate/{advers_id}", response_model=AdvertisingBase)
