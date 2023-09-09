@@ -20,6 +20,7 @@ services:
         interval: 30s
         timeout: 10s
         retries: 5 
+
   rediscache:
     networks:
      mynet:
@@ -27,12 +28,12 @@ services:
     image: redis:latest
     ports:
       - 6379:6379
-
     healthcheck:
       test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
       interval: 15s
       timeout: 5s
       retries: 5   
+
   dbpostgres:
     image: postgres:latest
     environment:
@@ -47,12 +48,11 @@ services:
       mynet:
          ipv4_address: 172.28.5.80
     healthcheck:
-    
-
       test: [ "CMD", "pg_isready", "-q", "-d", "keyckoakdb", "-U", "postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
+
 
   keyckoak:
     networks:

@@ -22,3 +22,4 @@ opentelemetry-instrumentation-fastapi==0.40b
 opentelemetry-instrumentation-sqlalchemy==0.40b0
 elastic-apm
 gunicorn
+fastapi_keycloak

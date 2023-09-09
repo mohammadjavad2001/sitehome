@@ -108,32 +108,32 @@ else:
 
 
 #APM ELASTIC SEARCH
-from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
-import elasticapm.instrumentation.control as instr
-apm_config = {
-'SERVICE_NAME': 'DemoFastAPI',
-'DEBUG': True,
-'SERVER_URL': 'http://172.28.5.20:8200',
-'CAPTURE_HEADERS': True,
-'ENVIRONMENT': 'dev',
-'CAPTURE_BODY': 'all',
-'GLOBAL_LABELS': 'platform=DemoPlatform, application=DemoApplication',
-'SECRET_TOKEN': 'cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c'
-}
-#
-apm = make_apm_client(apm_config)
-#
-#apm = make_apm_client(apm_config)
-##apm = ElasticAPM(app=app,client=apm,service_name="my-fastapi-app", secret_token="cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c",service_url="http://172.28.5.20:9200")
-##app.add_middleware(ElasticAPM, client=apm)
-server_url = 'http://172.28.5.20:8200'
-service_name = 'DemoFlask'
-environment = 'dev'
-#apm = ElasticAPM(app, server_url=server_url, 
-#      service_name=service_name, environment=environment,client =)
+# from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
+# import elasticapm.instrumentation.control as instr
+# apm_config = {
+#             'SERVICE_NAME': 'DemoFastAPI',
+#             'DEBUG': True,
+#             'SERVER_URL': 'http://172.28.5.20:8200',
+#             'CAPTURE_HEADERS': True,
+#             'ENVIRONMENT': 'dev',
+#             'CAPTURE_BODY': 'all',
+#             'GLOBAL_LABELS': 'platform=DemoPlatform, application=DemoApplication',
+#             'SECRET_TOKEN': 'cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c'
+#              }
+# #
+# apm = make_apm_client(apm_config)
+# #
+# #apm = make_apm_client(apm_config)
+# ##apm = ElasticAPM(app=app,client=apm,service_name="my-fastapi-app", secret_token="cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c",service_url="http://172.28.5.20:9200")
+# ##app.add_middleware(ElasticAPM, client=apm)
+# server_url = 'http://172.28.5.20:8200'
+# service_name = 'DemoFlask'
+# environment = 'dev'
+# #apm = ElasticAPM(app, server_url=server_url, 
+# #      service_name=service_name, environment=environment,client =)
 
-app.add_middleware(ElasticAPM, client=apm)
-print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+# app.add_middleware(ElasticAPM, client=apm)
+# print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
 
 
 
@@ -354,11 +354,124 @@ def delete_user(user_id:int,db:Session = Depends(get_db)):
     result = crud.delete_user(db,db_user)
     return result
 
+
+from fastapi.security import OAuth2AuthorizationCodeBearer
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import hashlib
 from jose import JWTError, jwt
-SECRET_KEY = "cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c"
+from fastapi.responses import JSONResponse
+from datetime import datetime
+from fastapi.responses import RedirectResponse
+
+from fastapi_oidc import IDToken
+from fastapi_oidc import get_auth
+
+# OIDC_config = {
+#    "client_id": "fastapi",
+#    "base_authorization_server_uri": "http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/auth",
+#    "issuer": "http://localhost:8080/auth/realms/fast",
+#    "signature_cache_ttl": 3600,
+# }
+
+# authenticate_user=get_auth(**OIDC_config)
+
+
+
+# @app.get("/protected")
+# def protected(id_token: IDToken = Depends(authenticate_user)):
+#    return {"Hello": "World", "user_email": id_token.email}
+
+#-----------------------------------------------------------------------------------
+from keycloak import KeycloakOpenID
+
+keycloak_openid = KeycloakOpenID(server_url="http://172.28.5.90:8080/auth",
+                                 client_id="fastapi",
+                                 realm_name="fast",
+                                 client_secret_key="qNnqdLpdZgPvpxXmknz3D65r5tIx5S8k",
+                                 verify=True
+                                
+                                )
+ 
+
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token",scheme_name="User")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        userinfo = keycloak_openid.userinfo(token)
+    except:
+        return Response("گرایش")
+    
+    return userinfo
+
+
+@app.get("/protected")
+async def protected_route(user=Depends(get_current_user)):
+    return {"message": f"Hello {user['preferred_username']}!"}
+
+@app.get("/login")
+async def login():
+   # Redirect to Keycloak login page
+   
+   return RedirectResponse("http://192.168.107.23:8090/auth/realms/fast/protocol/openid-connect/auth?response_type=code&client_id=fastapi")
+
+   #response = RedirectResponse(status_code=201,url="http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/auth?response_type=code&client_id=fastapi")
+   #return response                             
+   #return RedirectResponse(status_code=302, detail="Redirect", headers={"Location": "&redirect_uri=http://localhost:8080/callback"})
+
+@app.get("/callback")
+def callback(code: str):
+    #token = keycloak_openid.token(code,"http://localhost:8080/callback")
+    print("BVDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+    print("hamta5",code)
+    #access_token = keycloak_openid.token(username="ali",password="1")    
+    access_token = keycloak_openid.token(
+        grant_type='authorization_code',
+        code=code,
+        redirect_uri="http://192.168.107.23:8080/docs")
+        # Save tokens 
+    print(access_token)    
+    # access_token = token['access_token']
+    # refresh_token = token['refresh_token']
+    
+    return {f'detail": "Authentication successful! {access_token}'}
+
+# @app.get("/login")
+# async def login():
+#     return await keycloak_openid.load_authorization_config("http://0.0.0.0:8090/auth/realms/fast/.well-known/openid-configuration")
+# async def get_idp_public_key():
+#     return (
+#         "-----BEGIN PUBLIC KEY-----\n"
+#         f"{keycloak_openid.public_key()}"
+#         "\n-----END PUBLIC KEY-----"
+#     )
+#- - - - - -- - - - -- - - - -- - - - -- - - - -- - ------------------------------------------------------------
+# from fastapi_keycloak import FastAPIKeycloak, OIDCUser
+
+# idp = FastAPIKeycloak(
+
+#     server_url="http://0.0.0.0:8090/auth/",
+#     client_id="fastapi",
+#     client_secret="qNnqdLpdZgPvpxXmknz3D65r5tIx5S8k",
+#     admin_client_secret="89Hz8ZQF3dh0diOGI7fnld9VXw18PNVo",
+#     realm="fast",
+#     callback_uri="http://localhost:8080/docs"
+# )
+
+
+# idp.add_swagger_config(app)
+
+# @app.get("/login")
+# def login_redirect():
+#     return RedirectResponse(idp.login_uri)
+
+
+
+# oauth2_scheme = OAuth2AuthorizationCodeBearer(
+#     authorizationUrl="http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/auth",
+#     tokenUrl="http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/token", # https://sso.example.com/auth/realms/example-realm/protocol/openid-connect/token
+# )
+
+SECRET_KEY = "cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 5
 
@@ -436,34 +549,6 @@ def get_current_user(token: Annotated[str,Depends(oauth2_scheme)],db:Session = D
         raise credentials_exception
     return user
 
-from fastapi.responses import JSONResponse
-from datetime import datetime
-
-from fastapi_keycloak import FastAPIKeycloak, OIDCUser
-from fastapi.responses import RedirectResponse
-
-app = FastAPI()
-
-
-
-idp = FastAPIKeycloak(
-    
-    server_url="http://keyckoak/auth/",
-    client_id="fastapi",
-    client_secret="mumS2R2HWA3S4eEzAOEp6iThMAd7ep3F",
-    admin_client_secret="89Hz8ZQF3dh0diOGI7fnld9VXw18PNVo",
-    realm="Fast",
-    callback_uri="http://localhost:8080/docs"
-)
-
-
-idp.add_swagger_config(app)
-
-
-@app.get("/login")
-def login_redirect():
-    return RedirectResponse(idp.login_uri)
-
 
 
 @app.post("/logout")
@@ -487,7 +572,7 @@ def logout(token: Annotated[str,Depends(oauth2_scheme)],db:Session = Depends(get
         raise credentials_exception
     # Revoke the token by adding it to the revoked_tokens table    
     revoke_token = revoke_token(is_expired=False,id=random.randint(10000,99999),token=token,user_id=random.randint(1,50),revoked_at=datetime.now)
-    revoke_token_db=crud.create_revoke_token(db=db,token=revoked_token)
+    revoke_token_db=crud.create_revoke_token(db=db,token=revoke_token)
     return JSONResponse(content=revoke_token_db,status_code=status.HTTP_202_ACCEPTED)
 
 
