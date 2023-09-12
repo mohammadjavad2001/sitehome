@@ -365,7 +365,7 @@ from fastapi.responses import RedirectResponse
 
 from fastapi_oidc import IDToken
 from fastapi_oidc import get_auth
-
+import requests
 # OIDC_config = {
 #    "client_id": "fastapi",
 #    "base_authorization_server_uri": "http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/auth",
@@ -381,69 +381,114 @@ from fastapi_oidc import get_auth
 # def protected(id_token: IDToken = Depends(authenticate_user)):
 #    return {"Hello": "World", "user_email": id_token.email}
 
-#-----------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------
 from keycloak import KeycloakOpenID
 
-keycloak_openid = KeycloakOpenID(server_url="http://172.28.5.90:8080/auth",
+keycloak_openid = KeycloakOpenID(server_url="http://172.28.5.90:8080/auth/",
                                  client_id="fastapi",
                                  realm_name="fast",
                                  client_secret_key="qNnqdLpdZgPvpxXmknz3D65r5tIx5S8k",
-                                 verify=True
-                                
+                                 verify=False
                                 )
- 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token",scheme_name="User")
-
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_current_user3(token: str):
     try:
-        userinfo = keycloak_openid.userinfo(token)
-    except:
-        return Response("گرایش")
-    
-    return userinfo
 
+        userinfo = keycloak_openid.userinfo(token)
+        return [True,userinfo]
+#     URL_TOKEN = "realms/{realm-name}/protocol/openid-connect/token"
+# URL_USERINFO = "realms/{realm-name}/protocol/openid-connect/userinfo"
+    except:
+        return [False]
+
+class datakeycloak(BaseModel):
+    username: str
+    password: str
+    
+@app.post("/loging")
+def loging(data:datakeycloak):
+    try:
+        token=keycloak_openid.token(username=data.username,password=data.password)
+        return f"successfully logged in {token}"
+    except Exception:
+        return Response(content="username or password invalid ",status_code=status.HTTP_404_NOT_FOUND)
+
+@app.post("/loggout")
+def loging(token: str = Depends(oauth2_scheme)):
+    try:
+        
+        keycloak_openid.logout(refresh_token=token)
+        return Response(content=f"successfully logged out",status_code=status.HTTP_200_OK)
+    
+    except Exception:
+        return Response(content="you are not login ",status_code=status.HTTP_404_NOT_FOUND)
+
+@app.get("/secure-resource")
+async def secure_resource(token: str = Depends(oauth2_scheme)):
+    response_auth=get_current_user3(token=token)
+    if(response_auth[0]==True):
+
+        return {"message": f"{response_auth[1]}"}
+    else:
+        return{"messsage":"token invalid"}
 
 @app.get("/protected")
-async def protected_route(user=Depends(get_current_user)):
-    return {"message": f"Hello {user['preferred_username']}!"}
+async def protected_route(token: str = Depends(oauth2_scheme)):
+    
+    response_auth=get_current_user3(token=token)
+    
+    if(response_auth[0]==True):
 
+        return {"message": "DQWDWDQWD"}
+    else:
+        return{"messsage":"token invalid"}
+    
 @app.get("/login")
 async def login():
    # Redirect to Keycloak login page
    
-   return RedirectResponse("http://192.168.107.23:8090/auth/realms/fast/protocol/openid-connect/auth?response_type=code&client_id=fastapi")
-
-   #response = RedirectResponse(status_code=201,url="http://0.0.0.0:8090/auth/realms/fast/protocol/openid-connect/auth?response_type=code&client_id=fastapi")
-   #return response                             
-   #return RedirectResponse(status_code=302, detail="Redirect", headers={"Location": "&redirect_uri=http://localhost:8080/callback"})
-
+   return RedirectResponse(keycloak_openid.auth_url(redirect_uri="http://192.168.107.23:8080/callback"))
+    #return RedirectResponse("http://192.168.107.23:8090/auth/realms/fast/protocol/openid-connect/auth?response_type=code&client_id=fastapi")
+   
 @app.get("/callback")
 def callback(code: str):
-    #token = keycloak_openid.token(code,"http://localhost:8080/callback")
-    print("BVDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-    print("hamta5",code)
-    #access_token = keycloak_openid.token(username="ali",password="1")    
-    access_token = keycloak_openid.token(
-        grant_type='authorization_code',
-        code=code,
-        redirect_uri="http://192.168.107.23:8080/docs")
-        # Save tokens 
-    print(access_token)    
-    # access_token = token['access_token']
-    # refresh_token = token['refresh_token']
+    # try:
+    #     url = "http://172.28.5.90:8080/auth/realms/fast/protocol/openid-connect/token"
+    #     headers = {
+    #                 'Content-Type': "application/x-www-form-urlencoded",
+    #                 }
+    #     print(headers)
+    #     #data1 = "grant_type=password&username=admin&password=123&scope=apim:api_view apim:api_create"
+    #     #print(f"{data1}")
+    #     data = {
+    #         "grant_type": "authorization_code",
+    #         "code": f'{code}',
+    #         "client_id": f'{keycloak_openid.client_id}',
+    #         "client_secret": f'{keycloak_openid.client_secret_key}',
+    #         "redirect_uri": "http://192.168.107.23:8080/callback"
+    #         }
+    #     response = requests.post(url=url, headers=headers, data=data, verify=False)  # Use verify=False to ignore SSL
+        
+    #     try:
+    #         return Response(status_code=response.status_code,content=response.json())
+    #     except Exception:
+    #         return Response(content=response.content,status_code=response.status_code)
+    # except Exception:
+    #         return Response(data={"detail":"raised an Exception"}, status=status.HTTP_404_NOT_FOUND)  
+#    token = keycloak_openid.token(code,"http://localhost:8080/callback")
     
-    return {f'detail": "Authentication successful! {access_token}'}
+    token = keycloak_openid.token(
+        grant_type="authorization_code",
+        code=code,
+        redirect_uri="http://192.168.107.23:8080/callback"
+        )
+    
+    access_token = token['access_token']
+    refresh_token = token['refresh_token']
+    return {f'detail": "Authentication successful! {token}'}   
+   #-----------------------------------------------------------------
 
-# @app.get("/login")
-# async def login():
-#     return await keycloak_openid.load_authorization_config("http://0.0.0.0:8090/auth/realms/fast/.well-known/openid-configuration")
-# async def get_idp_public_key():
-#     return (
-#         "-----BEGIN PUBLIC KEY-----\n"
-#         f"{keycloak_openid.public_key()}"
-#         "\n-----END PUBLIC KEY-----"
-#     )
 #- - - - - -- - - - -- - - - -- - - - -- - - - -- - ------------------------------------------------------------
 # from fastapi_keycloak import FastAPIKeycloak, OIDCUser
 
