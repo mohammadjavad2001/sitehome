@@ -609,7 +609,6 @@ def logout(token: Annotated[str,Depends(oauth2_scheme)],db:Session = Depends(get
         print("DSV")
         if username is None:
             raise credentials_exception
-        
     except JWTError:
         raise credentials_exception
     user = crud.get_userbyusername(db=db, username=username)
