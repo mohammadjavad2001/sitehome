@@ -520,6 +520,7 @@ SECRET_KEY = "cacc7099dcedff3ac82b0f225533f81439871f5952f39f555f02fc45a2bfa12c"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 5
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -645,3 +646,71 @@ def update_advers(advers_id:int,token:Annotated[str,Depends(oauth2_scheme)],adve
     except JWTError:
         raise credentials_exception
 
+# from keycloak import KeycloakAdmin
+# from keycloak import KeycloakOpenIDConnection
+
+# keycloak_connection = KeycloakOpenIDConnection(
+#                         server_url="http://172.28.5.90:8080/auth/",
+#                         username='admins',
+#                         password='80',
+#                         realm_name="fast",
+#                         #user_realm_name="admin",
+#                         client_id="fastapi",
+#                         client_secret_key="qNnqdLpdZgPvpxXmknz3D65r5tIx5S8k",
+#                         verify=False)
+
+# keycloak_admin = KeycloakAdmin(connection=keycloak_connection)
+#users = keycloak_admin.get_users()
+
+#keycloak_admin.sync_users(storage_id="storage_di", action="action")
+#keycloak_admin.get_users() # Get user in main realm
+    
+def update_user_keycloak(db: Session = Depends(get_db)):
+    try:
+        token = keycloak_openid.token(username="admins",password="80")
+        access_token = token['access_token']        
+        #users = keycloak_admin.get_users()
+        url = "http://172.28.5.90:8080/auth/admin/realms/fast/users"
+        headers = {
+                    'Authorization': f"Bearer {access_token}",
+                    }
+        print(headers)
+
+        response = requests.get(url=url,headers=headers,verify=True)  # Use verify=False to ignore SSL
+        data=json.loads(response.content)
+        random.randint(1,900)
+        
+        for user in data:
+            
+            user1=User(id=random.randint(1,900),username=user.get('username'),isactivate=user.get('enabled'),email="FEWFEWF@gmial.com",password="FWEF",phone="0919898456")
+            
+            if user.get('access').get('manageGroupMembership')==True:
+                user1.isstaff=True
+                
+            crud.create_user(db=db,user=user1)
+            
+        try:
+            
+            return Response(status_code=response.status_code,content=response.json())
+        except Exception:
+            return Response(content=response.content,status_code=response.status_code)
+    except Exception:
+            return Response(content={"detail":"raised an Exception"}, status=status.HTTP_404_NOT_FOUND)  
+        
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+
+scheduler = BackgroundScheduler()
+
+@scheduler.scheduled_job("interval", minutes=30)  # Adjust the interval as needed
+def synchronize_users(db: Session = Depends(get_db)):
+    try:
+        now = datetime.now()
+        print(f"Synchronization started at {now}")
+        # Retrieve user data from Keycloak and update your database
+        update_user_keycloak(db=db)
+        print(f"Synchronization completed at {now}")
+    except Exception as e:
+        print(f"Error during synchronization: {e}")
+
+scheduler.start()
