@@ -24,3 +24,4 @@ elastic-apm
 gunicorn
 fastapi_keycloak
 requests==2.31.0
+APScheduler==3.10.4
