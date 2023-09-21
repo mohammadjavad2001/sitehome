@@ -699,7 +699,8 @@ from datetime import datetime
 
 scheduler = BackgroundScheduler()
 
-@scheduler.scheduled_job("interval", minutes=2)  # Adjust the interval as needed
+@scheduler.scheduled_job("interval", minutes=2) 
+# Adjust the interval as needed
 def synchronize_users(db: Session = Depends(get_db)):
     try:
         now = datetime.now()
